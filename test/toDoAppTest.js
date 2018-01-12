@@ -1,3 +1,4 @@
+const querystring = require('querystring');
 let chai = require('chai');
 let assert = chai.assert;
 let request = require('./requestSimulator.js');
@@ -76,6 +77,25 @@ describe('app',()=>{
         th.body_does_not_contain(res,'login failed');
         th.should_not_have_cookie(res,'message');
         done();
+      })
+    })
+  })
+  describe('POST /createToDo',()=>{
+    let sessionid="";
+    it('redirects to home page with added toDo',done=>{
+      let anotherRequest=request(app,{method:'POST',url:'/createToDo',body:"Title=ToDoOfxyzApp&Description=i dont know",cookie:sessionid},res=>{
+        th.should_be_redirected_to(res,"/home");
+        th.should_not_have_cookie(res,'message');
+        done();
+      })
+      request(app,{method:'GET',url:'/login'},anotherRequest=>{
+        th.status_is_ok(res);
+        th.body_contains(res,'userName:');
+        th.body_does_not_contain(res,'login failed');
+        th.should_not_have_cookie(res,'message');
+        let cookieText = res.headers['Set-Cookie']
+        sessionid="sessionid="+querystring.parse(cookieText).sessionid;
+        anotherRequest();
       })
     })
   })

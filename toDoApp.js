@@ -1,6 +1,6 @@
 const fs = require('fs');
 const webapp = require('./webapp.js');
-
+const ToDoManager = require('./js/toDoManager.js');
 
 const PORT=8000;
 
@@ -9,6 +9,8 @@ let registered_users = [{userName:'yogi',name:'Yogiraj_Tambake'}];
 let loginTemplate = fs.readFileSync("./templates/loginTemplate.html","utf8");
 
 let app=webapp.create();
+
+let toDoManager=new ToDoManager("./data/toDo.JSON");
 
 let serveIndexForRoot = function (req,res) {
   if (req.url=='/') req.url='/login';
@@ -62,7 +64,10 @@ app.get("/login",(req,res)=>{
 })
 
 app.get("/home",(req,res)=>{
-  let home=fs.readFileSync("./public/home.html");
+  toDoManager.load()
+  let home=fs.readFileSync("./public/home.html","utf8");
+  let toDoLists=toDoManager.getToDoListInHtmlForm();
+  home=home.replace(/TODOLISTS/,toDoLists)
   res.setHeader("Content-Type","text/html");
   res.statusCode=200;
   res.write(home);
@@ -96,5 +101,13 @@ app.post('/login',(req,res)=>{
   res.setHeader('Set-Cookie',`message=logInFailed;Max-Age=5`);
   res.redirect("/login");
 });
+
+app.post("/createToDo",(req,res)=>{
+  let title=req.body.Title;
+  let description=req.body.Description;
+  console.log(req.body);
+  toDoManager.createToDoList(title,description);
+  res.redirect("/home")
+})
 
 module.exports = app;

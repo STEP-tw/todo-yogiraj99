@@ -1,9 +1,11 @@
-let ToDoItem = function (ownId,description,state) {
+let ToDoItem = function (ownId,description) {
   this.id=ownId;
   this.description=description;
   this.state=state;
 }
 
 ToDoItem.prototype.toHtml = function () {
-  return `<td id='${this.id}'>${this.description}</td>`;
+  return `<p id='${this.id}'>${this.description}</p>`;
 };
+
+module.exports = ToDoItem;
