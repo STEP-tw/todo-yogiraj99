@@ -6,7 +6,7 @@ const PORT=8000;
 
 let registered_users = [{userName:'yogi',name:'Yogiraj_Tambake'}];
 
-let loginTemplate = fs.readFileSync("./templates/loginTemplate.html");
+let loginTemplate = fs.readFileSync("./templates/loginTemplate.html","utf8");
 
 let app=webapp.create();
 
@@ -48,8 +48,29 @@ app.use(logRequest);
 app.get("/login",(req,res)=>{
   res.statusCode=200;
   res.setHeader("Content-Type","text/html");
+  loginTemplate=loginTemplate.replace(/MESSAGE/,"This is a Login Page");
   res.write(loginTemplate);
   res.end();
 })
+
+app.get("/home",(req,res)=>{
+  res.statusCode=200;
+  res.write("");
+  res.end();
+})
+
+
+app.post('/login',(req,res)=>{
+  let user = registered_users.find(u=>u.userName==req.body.userName);
+  if(user) {
+    let sessionid = new Date().getTime();
+    res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
+    user.sessionid = sessionid;
+    res.redirect("/home")
+    res.end();
+    return;
+  }
+  res.redirect("/login");
+});
 
 module.exports = app;
