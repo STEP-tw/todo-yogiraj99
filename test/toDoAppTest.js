@@ -36,4 +36,24 @@ describe('app',()=>{
       })
     })
   })
+  describe("POST /login",function () {
+    it('serves home page',function () {
+      it('serves the login page with message for a failed login',done=>{
+        request(app,{method:'POST',url:'/login',body:'userName=yogi'},res=>{
+          th.status_is_ok(res);
+          th.should_not_have_cookie(res,'message');
+          done();
+        })
+      })
+    })
+    it('serves the login page with message for a failed login',done=>{
+      request(app,{method:'GET',url:'/login',headers:{'cookie':'message=logInFailed'}},res=>{
+        th.status_is_ok(res);
+        th.body_contains(res,'userName:');
+        th.body_contains(res,'logInFailed');
+        th.should_not_have_cookie(res,'message');
+        done();
+      })
+    })
+  })
 })

@@ -14,6 +14,10 @@ let serveIndexForRoot = function (req,res) {
   if (req.url=='/') req.url='/login';
 }
 
+let isSameMessageInCookie = function (req,message) {
+  return req.cookies.message==message;
+}
+
 let toS = o=>JSON.stringify(o,null,2);
 
 timeStamp = ()=>{
@@ -46,10 +50,14 @@ app.use(loadUser);
 app.use(logRequest);
 
 app.get("/login",(req,res)=>{
+  let message="This is a Login Page";
+  if (isSameMessageInCookie(req,"logInFailed")) {
+    message="logInFailed";
+  }
   res.statusCode=200;
   res.setHeader("Content-Type","text/html");
-  loginTemplate=loginTemplate.replace(/MESSAGE/,"This is a Login Page");
-  res.write(loginTemplate);
+  let loginPage=loginTemplate.replace(/MESSAGE/,message);
+  res.write(loginPage);
   res.end();
 })
 
@@ -59,6 +67,10 @@ app.get("/home",(req,res)=>{
   res.end();
 })
 
+app.get("/logout",(req,res)=>{
+  res.setHeader('Set-Cookie', [`logInFailed=false;Expires=${new Date(1).toUTCString()}`, `sessionid=0;Expires=${new Date(1).toUTCString()}`]);
+  res.redirect("/login");
+})
 
 app.post('/login',(req,res)=>{
   let user = registered_users.find(u=>u.userName==req.body.userName);
@@ -70,6 +82,7 @@ app.post('/login',(req,res)=>{
     res.end();
     return;
   }
+  res.setHeader('Set-Cookie',`message=logInFailed;Max-Age=5`);
   res.redirect("/login");
 });
 
