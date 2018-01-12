@@ -56,4 +56,27 @@ describe('app',()=>{
       })
     })
   })
+  describe('GET /home',()=>{
+    it('serves the home page',done=>{
+      request(app,{method:'GET',url:'/home'},res=>{
+        th.status_is_ok(res);
+        th.body_contains(res,'HOME');
+        th.body_contains(res,'createAToDo');
+        th.body_does_not_contain(res,'login failed');
+        th.should_not_have_cookie(res,'message');
+        done();
+      })
+    })
+  })
+  describe('GET /createAToDo',()=>{
+    it('serves the createAToDo page',done=>{
+      request(app,{method:'GET',url:'/createAToDo'},res=>{
+        th.status_is_ok(res);
+        th.body_contains(res,'createAToDo');
+        th.body_does_not_contain(res,'login failed');
+        th.should_not_have_cookie(res,'message');
+        done();
+      })
+    })
+  })
 })

@@ -62,8 +62,19 @@ app.get("/login",(req,res)=>{
 })
 
 app.get("/home",(req,res)=>{
+  let home=fs.readFileSync("./public/home.html");
+  res.setHeader("Content-Type","text/html");
   res.statusCode=200;
-  res.write("");
+  res.write(home);
+  res.end();
+})
+
+app.get("/createAToDo",(req,res)=>{
+  let toDoViewTemp=fs.readFileSync("./public/toDoView.html","utf8");
+  toDoView=toDoViewTemp.replace("MESSAGE","createAToDo<br><br><br><br><br>");
+  res.setHeader("Content-Type","text/html");
+  res.statusCode=200;
+  res.write(toDoView);
   res.end();
 })
 
