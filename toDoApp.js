@@ -1,6 +1,7 @@
 const fs = require('fs');
+const querystring = require('querystring');
 const webapp = require('./webapp.js');
-const ToDoManager = require('./js/toDoManager.js');
+const ToDoManager = require('./lib/toDoManager.js');
 
 const PORT=8000;
 
@@ -11,6 +12,47 @@ let loginTemplate = fs.readFileSync("./templates/loginTemplate.html","utf8");
 let app=webapp.create();
 
 let toDoManager=new ToDoManager("./data/toDo.JSON");
+
+let isOneOfActions = function (actualAction) {
+  let expectedActions=["view"];
+  return expectedActions.some((expectedAction)=>{
+    return actualAction==expectedAction;
+  });
+}
+
+let splitUrlBySlash = function (url) {
+  return url.split("/");
+}
+
+let viewHandler = function (req,res) {
+  let toDo=toDoManager.getToDoListInHtmlForm(req.option);
+  let viewHtmlTemp=fs.readFileSync("./templates/viewToDo.html","utf8");
+  let htmlToShow=viewHtmlTemp.replace(/TODO/,toDo);
+  res.write(htmlToShow);
+  res.end();
+  return ;
+}
+
+let optionHandler = {
+  "view":viewHandler,
+}
+
+let handleEditOption = function (res,toDoTitle) {
+  if (toDoManager.doesToDoPresent(toDoTitle)) {
+    let content=fs.readFileSync("./templates/viewToDo.html","utf8");
+    let toDo=toDoManager.getToDoListInHtmlForm(toDoTitle);
+    content=content.replace(toDo);
+    res.write(content);
+  }
+  res.end();
+}
+
+let parseUrl = function (req,res) {
+  let splitedUrl=req.url.split("/");
+  req.action=splitedUrl[1];
+  req.option=splitedUrl[2];
+  req.subOption=splitedUrl[3];
+}
 
 let serveIndexForRoot = function (req,res) {
   if (req.url=='/') req.url='/login';
@@ -48,8 +90,15 @@ let loadUser = (req,res)=>{
 };
 
 app.use(serveIndexForRoot);
+app.use(parseUrl);
 app.use(loadUser);
 app.use(logRequest);
+
+app.use((req,res)=>{
+  if (req.method=="GET"&&isOneOfActions(req.action)) {
+    optionHandler[req.action](req,res);
+  }
+})
 
 app.get("/login",(req,res)=>{
   let message="This is a Login Page";
@@ -64,9 +113,9 @@ app.get("/login",(req,res)=>{
 })
 
 app.get("/home",(req,res)=>{
-  toDoManager.load()
+  toDoManager.load();
   let home=fs.readFileSync("./public/home.html","utf8");
-  let toDoLists=toDoManager.getToDoListInHtmlForm();
+  let toDoLists=toDoManager.getAllToDoListInHtmlForm();
   home=home.replace(/TODOLISTS/,toDoLists)
   res.setHeader("Content-Type","text/html");
   res.statusCode=200;
@@ -74,8 +123,16 @@ app.get("/home",(req,res)=>{
   res.end();
 })
 
+app.get("/css/homePage.css",(req,res)=>{
+  let cssFile=fs.readFileSync("./public/css/homePage.css","utf8");
+  res.setHeader("Content-Type","text/css");
+  res.statusCode=200;
+  res.write(cssFile);
+  res.end();
+})
+
 app.get("/createAToDo",(req,res)=>{
-  let toDoViewTemp=fs.readFileSync("./public/toDoView.html","utf8");
+  let toDoViewTemp=fs.readFileSync("./public/createToDo.html","utf8");
   toDoView=toDoViewTemp.replace("MESSAGE","createAToDo<br><br><br><br><br>");
   res.setHeader("Content-Type","text/html");
   res.statusCode=200;
@@ -105,7 +162,6 @@ app.post('/login',(req,res)=>{
 app.post("/createToDo",(req,res)=>{
   let title=req.body.Title;
   let description=req.body.Description;
-  console.log(req.body);
   toDoManager.createToDoList(title,description);
   res.redirect("/home")
 })
