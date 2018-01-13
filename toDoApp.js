@@ -34,12 +34,21 @@ let viewHandler = function (req,res) {
 }
 
 let editHandler = function (req,res) {
-  let toDo=toDoManager.getToDoInEditFormat(req.option);
-  res.statusCode=200;
-  res.setHeader("Content-Type","text/html");
-  res.write(toDo);
-  res.end();
-  return ;
+  if (req.method=="GET") {
+    let toDo=toDoManager.getToDoInEditFormat(req.option);
+    res.statusCode=200;
+    res.setHeader("Content-Type","text/html");
+    res.write(toDo);
+    res.end();
+    return ;
+  }
+  if (req.method=="POST") {
+    let todoId=req.option;
+    let toDoTitle=req.body.Title;
+    let toDoDescription=req.body.Description;
+    toDoManager.editToDo(todoId,toDoTitle,toDoDescription);
+    res.redirect("/home");
+  }
 }
 
 let deleteHandler = function (req,res) {
@@ -102,7 +111,7 @@ app.use(loadUser);
 app.use(logRequest);
 
 app.use((req,res)=>{
-  if (req.method=="GET"&&isOneOfActions(req.action)) {
+  if (isOneOfActions(req.action)) {
     optionHandlers[req.action](req,res);
   }
 })
