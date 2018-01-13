@@ -14,7 +14,7 @@ let app=webapp.create();
 let toDoManager=new ToDoManager("./data/toDo.JSON");
 
 let isOneOfActions = function (actualAction) {
-  let expectedActions=["view","edit"];
+  let expectedActions=["view","edit","delete"];
   return expectedActions.some((expectedAction)=>{
     return actualAction==expectedAction;
   });
@@ -42,9 +42,16 @@ let editHandler = function (req,res) {
   return ;
 }
 
+let deleteHandler = function (req,res) {
+  let toDo=toDoManager.deleteToDo(req.option);
+  res.redirect("/home")
+  return ;
+}
+
 let optionHandlers = {
   "view":viewHandler,
-  "edit":editHandler
+  "edit":editHandler,
+  "delete":deleteHandler
 }
 
 let parseUrl = function (req,res) {
