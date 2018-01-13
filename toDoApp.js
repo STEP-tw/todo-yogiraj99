@@ -14,7 +14,7 @@ let app=webapp.create();
 let toDoManager=new ToDoManager("./data/toDo.JSON");
 
 let isOneOfActions = function (actualAction) {
-  let expectedActions=["view"];
+  let expectedActions=["view","edit"];
   return expectedActions.some((expectedAction)=>{
     return actualAction==expectedAction;
   });
@@ -33,18 +33,18 @@ let viewHandler = function (req,res) {
   return ;
 }
 
-let optionHandler = {
-  "view":viewHandler,
+let editHandler = function (req,res) {
+  let toDo=toDoManager.getToDoInEditFormat(req.option);
+  res.statusCode=200;
+  res.setHeader("Content-Type","text/html");
+  res.write(toDo);
+  res.end();
+  return ;
 }
 
-let handleEditOption = function (res,toDoTitle) {
-  if (toDoManager.doesToDoPresent(toDoTitle)) {
-    let content=fs.readFileSync("./templates/viewToDo.html","utf8");
-    let toDo=toDoManager.getToDoListInHtmlForm(toDoTitle);
-    content=content.replace(toDo);
-    res.write(content);
-  }
-  res.end();
+let optionHandlers = {
+  "view":viewHandler,
+  "edit":editHandler
 }
 
 let parseUrl = function (req,res) {
@@ -96,7 +96,7 @@ app.use(logRequest);
 
 app.use((req,res)=>{
   if (req.method=="GET"&&isOneOfActions(req.action)) {
-    optionHandler[req.action](req,res);
+    optionHandlers[req.action](req,res);
   }
 })
 
