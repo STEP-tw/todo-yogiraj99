@@ -54,6 +54,7 @@ const main = function(req,res){
   let content="";
   req.on('data',data=>content+=data.toString())
   req.on('end',()=>{
+    console.log(content);
     req.body = parseBodyUsingQuerryString(content);
     content="";
     // debugger;

@@ -2,6 +2,7 @@ const fs = require('fs');
 const querystring = require('querystring');
 const webapp = require('./webapp.js');
 const ToDoManager = require('./lib/toDoManager.js');
+const presentor = require('./lib/presentor');
 
 const PORT=8000;
 
@@ -14,7 +15,7 @@ let app=webapp.create();
 let toDoManager=new ToDoManager("./data/toDo.JSON");
 
 let isOneOfActions = function (actualAction) {
-  let expectedActions=["view","edit","delete"];
+  let expectedActions=["view","edit","delete","add"];
   return expectedActions.some((expectedAction)=>{
     return actualAction==expectedAction;
   });
@@ -25,9 +26,14 @@ let splitUrlBySlash = function (url) {
 }
 
 let viewHandler = function (req,res) {
-  let toDo=toDoManager.getToDoListInHtmlForm(req.option);
-  let viewHtmlTemp=fs.readFileSync("./templates/viewToDo.html","utf8");
-  let htmlToShow=viewHtmlTemp.replace(/TODO/,toDo);
+  let toDoId=req.option
+  toDoManager.load();
+  let toDoDetails=toDoManager.toDoLists[toDoId];
+  let toDoTemp=fs.readFileSync("./templates/toDo","utf8");
+  let jsScript=`<script src=/js/view.js charset=utf-8></script>`;
+  let htmlToShow=presentor.showTodo(toDoTemp,toDoDetails,toDoId,jsScript);
+  res.statusCode=200
+  res.setHeader("Content-Type","text/html")
   res.write(htmlToShow);
   res.end();
   return ;
@@ -35,17 +41,21 @@ let viewHandler = function (req,res) {
 
 let editHandler = function (req,res) {
   if (req.method=="GET") {
-    let toDo=toDoManager.getToDoInEditFormat(req.option);
+    let toDoId=req.option
+    toDoManager.load();
+    let toDoDetails=toDoManager.toDoLists[toDoId];
+    let htmlToShow=presentor.showTodoForEditOption(toDoDetails,toDoId);
     res.statusCode=200;
     res.setHeader("Content-Type","text/html");
-    res.write(toDo);
+    res.write(htmlToShow);
     res.end();
     return ;
   }
   if (req.method=="POST") {
     let todoId=req.option;
-    let toDoTitle=req.body.Title;
-    let toDoDescription=req.body.Description;
+    let toDoTitle=req.body.title;
+    let toDoDescription=req.body.description;
+    console.log(req.body);
     toDoManager.editToDo(todoId,toDoTitle,toDoDescription);
     res.redirect("/home");
   }
@@ -57,10 +67,21 @@ let deleteHandler = function (req,res) {
   return ;
 }
 
+let addHandler = function (req,res) {
+  let description=req.body.toDoItem;
+  let toDoId=req.option;
+  let toDoItemId=new Date().getTime();
+  toDoManager.addToDoItem(toDoId,toDoItemId,description);
+  res.statusCode=200;
+  res.end();
+  return ;
+}
+
 let optionHandlers = {
   "view":viewHandler,
   "edit":editHandler,
-  "delete":deleteHandler
+  "delete":deleteHandler,
+  "add":addHandler
 }
 
 let parseUrl = function (req,res) {
@@ -136,6 +157,14 @@ app.get("/home",(req,res)=>{
   res.setHeader("Content-Type","text/html");
   res.statusCode=200;
   res.write(home);
+  res.end();
+})
+
+app.get("/js/view.js",(req,res)=>{
+  let jsFile=fs.readFileSync("./public/js/view.js","utf8");
+  res.setHeader("Content-Type","text/javascript");
+  res.statusCode=200;
+  res.write(jsFile);
   res.end();
 })
 

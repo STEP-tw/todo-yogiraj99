@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    JSSCRIPT
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="toDo">
+        TODODETAILS
+        TODOITEMS
+        OPTIONS
+      </div>
+    </div>
+  </body>
+</html>
