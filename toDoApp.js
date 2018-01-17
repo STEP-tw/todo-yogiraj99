@@ -44,7 +44,8 @@ let editHandler = function (req,res) {
     let toDoId=req.option
     toDoManager.load();
     let toDoDetails=toDoManager.toDoLists[toDoId];
-    let htmlToShow=presentor.showTodoForEditOption(toDoDetails,toDoId);
+    let toDoTemp=fs.readFileSync("./templates/toDo","utf8");
+    let htmlToShow=presentor.showTodoForEditOption(toDoTemp,toDoDetails,toDoId);
     res.statusCode=200;
     res.setHeader("Content-Type","text/html");
     res.write(htmlToShow);
@@ -55,7 +56,6 @@ let editHandler = function (req,res) {
     let todoId=req.option;
     let toDoTitle=req.body.title;
     let toDoDescription=req.body.description;
-    console.log(req.body);
     toDoManager.editToDo(todoId,toDoTitle,toDoDescription);
     res.redirect("/home");
   }
@@ -152,8 +152,9 @@ app.get("/login",(req,res)=>{
 app.get("/home",(req,res)=>{
   toDoManager.load();
   let home=fs.readFileSync("./public/home.html","utf8");
-  let toDoLists=toDoManager.getAllToDoListInHtmlForm();
-  home=home.replace(/TODOLISTS/,toDoLists)
+  let toDos=toDoManager.toDoLists;
+  let toDosAsHtml=presentor.getAllToDoListInHtmlForm(toDos);
+  home=home.replace(/TODOLISTS/,toDosAsHtml);
   res.setHeader("Content-Type","text/html");
   res.statusCode=200;
   res.write(home);
