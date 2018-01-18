@@ -53,16 +53,24 @@ let editHandler = function (req,res) {
     return ;
   }
   if (req.method=="POST") {
-    let todoId=req.option;
-    let toDoTitle=req.body.title;
-    let toDoDescription=req.body.description;
-    toDoManager.editToDo(todoId,toDoTitle,toDoDescription);
+    debugger;
+    let toDoDetails={};
+    toDoDetails.toDoId=req.option;
+    toDoDetails.title=req.body.title;
+    toDoDetails.description=req.body.description;
+    toDoDetails.toDoItems={};
+    toDoManager.editToDo(toDoDetails);
     res.redirect("/home");
   }
 }
 
 let deleteHandler = function (req,res) {
-  let toDo=toDoManager.deleteToDo(req.option);
+  if(req.subOption){
+    toDoManager.deleteToDoItem(req.option,req.subOption);
+    res.redirect(`/view/${req.option}`)
+    return ;
+  }
+  toDoManager.deleteToDo(req.option);
   res.redirect("/home")
   return ;
 }
